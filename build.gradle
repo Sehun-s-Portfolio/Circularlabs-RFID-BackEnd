@@ -1,0 +1,137 @@
+buildscript {
+	ext {
+		queryDslVersion = "5.0.0"
+	}
+}
+
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.7.8'
+	id 'io.spring.dependency-management' version '1.1.3'
+	//querydsl 추가
+	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+}
+
+group = 'com.rfid'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '1.8'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.session:spring-session-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-web-services'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.session:spring-session-core'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.batch:spring-batch-test'
+
+	// QueryDSL 설정
+	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+	implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	// JSONObject
+	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+	implementation 'org.json:json:20231013'
+
+	// Spring Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// Spring Cache Abstraction
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+	// redis
+	implementation 'redis.clients:jedis:4.3.1'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+//빌드시 plain jar 파일은 만들어지지 않습니다.
+jar {
+	enabled = false
+}
+
+// querydsl 사용할 경로 지정합니다. 현재 지정한 부분은 .gitignore에 포함되므로 git에 올라가지 않습니다.
+def querydslDir = "$rootDir/generated/querydsl"
+//def querydslDir = "src/main/generated"
+
+// JPA 사용여부 및 사용 경로 설정
+/*
+querydsl {
+	jpa = true
+	querydslSourcesDir = querydslDir
+}
+ */
+
+// build시 사용할 sourceSet 추가 설정
+/*
+sourceSets {
+	main.java.srcDir querydslDir
+}*/
+
+
+// querydsl 컴파일 시 사용할 옵션 설정
+/*
+compileQuerydsl {
+	options.annotationProcessorPath = configurations.querydsl
+}*/
+
+// gradle clean 시에 QClass 디렉토리 삭제
+clean {
+	delete file(querydslDir)
+}
+
+
+// JPA 사용여부 및 사용 경로 설정
+querydsl {
+	jpa = true
+	querydslSourcesDir = querydslDir
+}
+
+// build시 사용할 sourceSet 추가 설정
+sourceSets {
+	main.java.srcDir querydslDir
+}
+
+
+// querydsl 컴파일 시 사용할 옵션 설정
+compileQuerydsl {
+	options.annotationProcessorPath = configurations.querydsl
+}
+
+// querydsl이 compileClassPath를 상속하도록 설정
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+	querydsl.extendsFrom compileClasspath
+}
